@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
 import 'package:stayzio_app/features/booking/data/model/booking.dart';
 import 'package:stayzio_app/features/booking/data/provider/booking_provider.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
@@ -44,8 +45,7 @@ class _BookingScreenState extends State<BookingScreen>
 
     // Load bookings when screen initializes
     Future.microtask(() {
-      // Assuming user ID 1 for now - in a real app you'd get this from auth
-      final userId = 1;
+      final userId = context.watch<AuthProvider>().currentUser!.id!;
       final bookingProvider =
           Provider.of<BookingProvider>(context, listen: false);
       bookingProvider.loadBookingsByStatus(userId);
