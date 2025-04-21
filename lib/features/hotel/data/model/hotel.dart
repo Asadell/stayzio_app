@@ -59,13 +59,9 @@ class Hotel {
       rating: map['rating'] != null ? map['rating'] as double : null,
       imageUrl: map['imageUrl'] != null ? map['imageUrl'] as String : null,
       createdAt: map['createdAt'] != null ? map['createdAt'] as String : null,
-      facilities: map['facilities'] != null
-          ? List<HotelFacility>.from(
-              (map['facilities'] as List<int>).map<HotelFacility?>(
-                (x) => HotelFacility.fromMap(x as Map<String, dynamic>),
-              ),
-            )
-          : null,
+      facilities: (map['facilities'] as List<dynamic>?)
+          ?.map((facility) => facility as HotelFacility)
+          .toList(),
     );
   }
 

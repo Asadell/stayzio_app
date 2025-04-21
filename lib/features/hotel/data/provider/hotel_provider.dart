@@ -4,20 +4,43 @@ import 'package:stayzio_app/services/sqlite_service.dart';
 
 class HotelProvider with ChangeNotifier {
   List<Hotel> _hotels = [];
+  List<Hotel> _popularHotels = []; // Added to store the top 3 popular hotels
   Hotel? _selectedHotel;
   final SqliteService _sqliteService = SqliteService();
   bool _isLoading = false;
 
   List<Hotel> get hotels => _hotels;
+  List<Hotel> get popularHotels => _popularHotels; // Getter for popularHotels
   Hotel? get selectedHotel => _selectedHotel;
   bool get isLoading => _isLoading;
 
   Future<void> loadHotels() async {
+    print('load hotel');
     try {
       _isLoading = true;
       notifyListeners();
 
-      _hotels = await _sqliteService.getAllHotels();
+      _hotels = await _sqliteService.getAllHotels(); // Load all hotels
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print('error');
+      print(e);
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadTop3PopularHotels() async {
+    print('load top 3 hotel');
+    // New method to load top 3 popular hotels
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      _popularHotels = await _sqliteService
+          .getTop3HotelsByRating(); // Fetch top 3 popular hotels
 
       _isLoading = false;
       notifyListeners();

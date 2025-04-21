@@ -5,9 +5,10 @@ import 'package:stayzio_app/features/booking/data/model/payment_card.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel_facility.dart';
 import 'package:stayzio_app/features/message/data/model/message.dart';
+import 'package:path/path.dart';
 
 class SqliteService {
-  static const String _databaseName = 'stayzio.db';
+  static const String _databaseName = 'stayzio1.db';
   static const int _version = 1;
 
   // Table names
@@ -43,6 +44,12 @@ class SqliteService {
   }
 
   Future<void> createTables(Database database) async {
+    await database.execute('''
+    CREATE TABLE metadata (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )
+  ''');
     // User table
     await database.execute("""
       CREATE TABLE $_tableUser(
@@ -238,6 +245,35 @@ class SqliteService {
     }).toList());
   }
 
+  Future<List<Hotel>> getTop3HotelsByRating() async {
+    final db = await database;
+
+    final hotelMaps = await db.query(
+      _tableHotel,
+      orderBy: 'rating DESC, datetime(createdAt) DESC',
+      limit: 3,
+    );
+
+    return Future.wait(hotelMaps.map((hotelMap) async {
+      final hotelId = hotelMap['id'] as int;
+
+      final facilityMaps = await db.query(
+        _tableHotelFacility,
+        where: 'hotelId = ?',
+        whereArgs: [hotelId],
+      );
+
+      final facilities = facilityMaps.map((facilityMap) {
+        return HotelFacility.fromMap(facilityMap);
+      }).toList();
+
+      final completeHotelMap = Map<String, dynamic>.from(hotelMap);
+      completeHotelMap['facilities'] = facilities;
+
+      return Hotel.fromMap(completeHotelMap);
+    }).toList());
+  }
+
   Future<Hotel?> getHotelById(int id) async {
     final db = await database;
     final hotelMaps = await db.query(
@@ -424,9 +460,9 @@ class SqliteService {
   Future<void> _insertDummyData(Database db) async {
     // Insert dummy users
     final user1Id = await db.insert(_tableUser, {
-      'fullName': 'John Doe',
-      'email': 'john@example.com',
-      'password': 'password123',
+      'fullName': 'Satrio Asadel',
+      'email': 'del',
+      'password': 'del',
       'phoneNumber': '+6281234567890',
       'username': 'johndoe',
       'profileImage': 'https://randomuser.me/api/portraits/men/1.jpg',
@@ -1481,4 +1517,13 @@ class SqliteService {
       _database = null;
     }
   }
+}
+
+Future<void> deleteLocalDatabase() async {
+  final databasesPath = await getDatabasesPath();
+  final path = join(databasesPath, 'stayzio.db');
+
+  // Hapus file database
+  await deleteDatabase(path);
+  print('Database deleted successfully.');
 }
