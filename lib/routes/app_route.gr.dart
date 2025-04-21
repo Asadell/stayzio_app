@@ -262,6 +262,22 @@ class MessageRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [NearbyHotelMapScreen]
+class NearbyHotelMapRoute extends PageRouteInfo<void> {
+  const NearbyHotelMapRoute({List<PageRouteInfo>? children})
+    : super(NearbyHotelMapRoute.name, initialChildren: children);
+
+  static const String name = 'NearbyHotelMapRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const NearbyHotelMapScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [PersonalInfoScreen]
 class PersonalInfoRoute extends PageRouteInfo<void> {
   const PersonalInfoRoute({List<PageRouteInfo>? children})

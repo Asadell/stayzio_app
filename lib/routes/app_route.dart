@@ -9,6 +9,7 @@ import 'package:stayzio_app/features/booking/views/checkout_screen.dart';
 import 'package:stayzio_app/features/booking/views/request_to_book_screen.dart';
 import 'package:stayzio_app/features/home/views/home_screen.dart';
 import 'package:stayzio_app/features/hotel/views/hotel_detail_screen.dart';
+import 'package:stayzio_app/features/hotel/views/nearby_hotel_map_screen.dart';
 import 'package:stayzio_app/features/main/main_screen.dart';
 import 'package:stayzio_app/features/message/views/chat_screen.dart';
 import 'package:stayzio_app/features/message/views/message_screen.dart';
@@ -65,6 +66,9 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(
           page: RequestToBookRoute.page,
+        ),
+        AutoRoute(
+          page: NearbyHotelMapRoute.page,
         ),
       ];
 }
