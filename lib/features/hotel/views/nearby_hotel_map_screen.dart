@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
 import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart';
 import 'package:stayzio_app/features/utils/currency_utils.dart';
+import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
 class NearbyHotelMapScreen extends StatefulWidget {
@@ -638,17 +639,17 @@ class _NearbyHotelMapScreenState extends State<NearbyHotelMapScreen>
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             // Easter egg secret code that appears in the booking dialog
-            Text(
-              "Booking code: STAY${Random().nextInt(1000)}X",
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            Text(
-              "Psst! Type 'STAYCATION2025' for 10% off! 🤫",
-              style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 10,
-                  fontStyle: FontStyle.italic),
-            ),
+            // Text(
+            //   "Booking code: STAY${Random().nextInt(1000)}X",
+            //   style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            // ),
+            // Text(
+            //   "Psst! Type 'STAYCATION2025' for 10% off! 🤫",
+            //   style: TextStyle(
+            //       color: Colors.grey[400],
+            //       fontSize: 10,
+            //       fontStyle: FontStyle.italic),
+            // ),
           ],
         ),
         actions: [
@@ -658,15 +659,7 @@ class _NearbyHotelMapScreenState extends State<NearbyHotelMapScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              // Show success message
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content:
-                      Text("Booking successful! Check your email for details."),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              context.router.push(HotelDetailRoute(hotelId: hotel.id!));
             },
             child: const Text("Confirm"),
           ),

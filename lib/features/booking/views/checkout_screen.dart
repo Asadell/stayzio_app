@@ -4,10 +4,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
 import 'package:stayzio_app/features/booking/data/model/booking.dart';
-import 'package:stayzio_app/features/booking/data/model/payment_card.dart';
 import 'package:stayzio_app/features/booking/data/provider/booking_provider.dart';
 import 'package:stayzio_app/features/booking/data/provider/payment_card_provider.dart';
-import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
 import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart';
 import 'package:stayzio_app/features/utils/currency_utils.dart';
 import 'package:stayzio_app/features/utils/format_date_utils.dart';
@@ -36,27 +34,6 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  // Mock payment cards
-  final List<PaymentCard> paymentCards = [
-    PaymentCard(
-      id: 1,
-      userId: 1,
-      cardNumber: '5412 7534 9801 2345',
-      cardHolderName: 'Matt Kohler',
-      expiryDate: '12/26',
-      cardType: 'mastercard',
-      isDefault: 1,
-    ),
-    PaymentCard(
-      id: 2,
-      userId: 1,
-      cardNumber: '4123 5678 9012 3456',
-      cardHolderName: 'Matt Kohler',
-      expiryDate: '09/27',
-      cardType: 'visa',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     String selectedCard = 'mastercard'; // 'mastercard' or 'visa'

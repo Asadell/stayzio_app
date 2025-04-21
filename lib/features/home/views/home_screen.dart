@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
 import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart'; // Import the provider
 import 'package:stayzio_app/routes/app_route.dart';
 
@@ -30,12 +31,12 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Matt Kohler',
+            Text(
+              context.watch<AuthProvider>().currentUser?.fullName ?? "Guest",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             Text(
-              'San Diego, CA',
+              context.watch<AuthProvider>().currentUser?.email ?? "Guest",
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
@@ -344,134 +345,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
 
                         // Nearest hotels preview (optional, include if you want to show 1-2 closest hotels)
-                        if (hotelProvider.hotels.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          ...hotelProvider.hotels.take(2).map(
-                                (hotel) => GestureDetector(
-                                  onTap: () {
-                                    // Navigate to hotel detail screen
-                                    // If using auto_route:
-                                    // context.router.push(HotelDetailRoute(hotelId: hotel.id!));
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        // Hotel image
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: hotel.imageUrl != null
-                                              ? Image.network(
-                                                  hotel.imageUrl!,
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    return Container(
-                                                      width: 60,
-                                                      height: 60,
-                                                      color: Colors.grey[300],
-                                                      child: const Icon(
-                                                          Icons.hotel),
-                                                    );
-                                                  },
-                                                )
-                                              : Container(
-                                                  width: 60,
-                                                  height: 60,
-                                                  color: Colors.grey[300],
-                                                  child:
-                                                      const Icon(Icons.hotel),
-                                                ),
-                                        ),
-                                        const SizedBox(width: 12),
-
-                                        // Hotel details
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      hotel.name,
-                                                      style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 16),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                  if (hotel.rating != null)
-                                                    Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 4),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.grey[200],
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          const Icon(Icons.star,
-                                                              color:
-                                                                  Colors.amber,
-                                                              size: 14),
-                                                          Text(
-                                                            ' ${hotel.rating}',
-                                                            style:
-                                                                const TextStyle(
-                                                                    fontSize:
-                                                                        12),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                hotel.location,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey[600],
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                'Rp ${hotel.pricePerNight ~/ 1000}rb/night',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                        ],
                       ],
                     ),
                   ),

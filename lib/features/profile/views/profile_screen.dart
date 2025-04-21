@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
+import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
@@ -64,20 +67,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            "Brooklyn Simmons",
+                            context
+                                    .watch<AuthProvider>()
+                                    .currentUser
+                                    ?.fullName ??
+                                "Guest",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            "@bksim",
+                            context.watch<AuthProvider>().currentUser?.email ??
+                                "Guest",
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 14,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -136,7 +146,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Logout Button
               Center(
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.read<AuthProvider>().logout();
+
+                    Fluttertoast.showToast(
+                      msg: "You have been logged out.",
+                      backgroundColor: Colors.orangeAccent,
+                      textColor: Colors.white,
+                      gravity: ToastGravity.TOP,
+                    );
+
+                    context.router.replaceAll([const SigninRoute()]);
+                  },
                   child: const Text(
                     "Logout",
                     style: TextStyle(
@@ -147,6 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
 
               // Bottom Navigation Bar

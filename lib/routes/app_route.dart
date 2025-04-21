@@ -44,9 +44,6 @@ class AppRouter extends RootStackRouter {
           ],
         ),
         AutoRoute(
-          page: PersonalInfoRoute.page,
-        ),
-        AutoRoute(
           page: YourCardRoute.page,
         ),
         AutoRoute(
@@ -69,6 +66,9 @@ class AppRouter extends RootStackRouter {
         ),
         AutoRoute(
           page: NearbyHotelMapRoute.page,
+        ),
+        AutoRoute(
+          page: PersonalInfoRoute.page,
         ),
       ];
 }
