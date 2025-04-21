@@ -11,6 +11,22 @@
 part of 'app_route.dart';
 
 /// generated route for
+/// [AddNewCardScreen]
+class AddNewCardRoute extends PageRouteInfo<void> {
+  const AddNewCardRoute({List<PageRouteInfo>? children})
+    : super(AddNewCardRoute.name, initialChildren: children);
+
+  static const String name = 'AddNewCardRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const AddNewCardScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [BookingScreen]
 class BookingRoute extends PageRouteInfo<void> {
   const BookingRoute({List<PageRouteInfo>? children})
@@ -24,6 +40,102 @@ class BookingRoute extends PageRouteInfo<void> {
       return const BookingScreen();
     },
   );
+}
+
+/// generated route for
+/// [ChatScreen]
+class ChatRoute extends PageRouteInfo<ChatRouteArgs> {
+  ChatRoute({
+    Key? key,
+    required User user,
+    required User currentUser,
+    required bool isOnline,
+    List<PageRouteInfo>? children,
+  }) : super(
+         ChatRoute.name,
+         args: ChatRouteArgs(
+           key: key,
+           user: user,
+           currentUser: currentUser,
+           isOnline: isOnline,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'ChatRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<ChatRouteArgs>();
+      return ChatScreen(
+        key: args.key,
+        user: args.user,
+        currentUser: args.currentUser,
+        isOnline: args.isOnline,
+      );
+    },
+  );
+}
+
+class ChatRouteArgs {
+  const ChatRouteArgs({
+    this.key,
+    required this.user,
+    required this.currentUser,
+    required this.isOnline,
+  });
+
+  final Key? key;
+
+  final User user;
+
+  final User currentUser;
+
+  final bool isOnline;
+
+  @override
+  String toString() {
+    return 'ChatRouteArgs{key: $key, user: $user, currentUser: $currentUser, isOnline: $isOnline}';
+  }
+}
+
+/// generated route for
+/// [CheckoutScreen]
+class CheckoutRoute extends PageRouteInfo<CheckoutRouteArgs> {
+  CheckoutRoute({Key? key, required int hotelId, List<PageRouteInfo>? children})
+    : super(
+        CheckoutRoute.name,
+        args: CheckoutRouteArgs(key: key, hotelId: hotelId),
+        rawPathParams: {'hotelId': hotelId},
+        initialChildren: children,
+      );
+
+  static const String name = 'CheckoutRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<CheckoutRouteArgs>(
+        orElse: () => CheckoutRouteArgs(hotelId: pathParams.getInt('hotelId')),
+      );
+      return CheckoutScreen(key: args.key, hotelId: args.hotelId);
+    },
+  );
+}
+
+class CheckoutRouteArgs {
+  const CheckoutRouteArgs({this.key, required this.hotelId});
+
+  final Key? key;
+
+  final int hotelId;
+
+  @override
+  String toString() {
+    return 'CheckoutRouteArgs{key: $key, hotelId: $hotelId}';
+  }
 }
 
 /// generated route for
@@ -43,19 +155,45 @@ class HomeRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [HotelScreen]
-class HotelRoute extends PageRouteInfo<void> {
-  const HotelRoute({List<PageRouteInfo>? children})
-    : super(HotelRoute.name, initialChildren: children);
+/// [HotelDetailScreen]
+class HotelDetailRoute extends PageRouteInfo<HotelDetailRouteArgs> {
+  HotelDetailRoute({
+    Key? key,
+    required int hotelId,
+    List<PageRouteInfo>? children,
+  }) : super(
+         HotelDetailRoute.name,
+         args: HotelDetailRouteArgs(key: key, hotelId: hotelId),
+         rawPathParams: {'hotelId': hotelId},
+         initialChildren: children,
+       );
 
-  static const String name = 'HotelRoute';
+  static const String name = 'HotelDetailRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const HotelScreen();
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<HotelDetailRouteArgs>(
+        orElse:
+            () => HotelDetailRouteArgs(hotelId: pathParams.getInt('hotelId')),
+      );
+      return HotelDetailScreen(key: args.key, hotelId: args.hotelId);
     },
   );
+}
+
+class HotelDetailRouteArgs {
+  const HotelDetailRouteArgs({this.key, required this.hotelId});
+
+  final Key? key;
+
+  final int hotelId;
+
+  @override
+  String toString() {
+    return 'HotelDetailRouteArgs{key: $key, hotelId: $hotelId}';
+  }
 }
 
 /// generated route for
@@ -91,6 +229,22 @@ class MessageRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [PersonalInfoScreen]
+class PersonalInfoRoute extends PageRouteInfo<void> {
+  const PersonalInfoRoute({List<PageRouteInfo>? children})
+    : super(PersonalInfoRoute.name, initialChildren: children);
+
+  static const String name = 'PersonalInfoRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PersonalInfoScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [ProfileScreen]
 class ProfileRoute extends PageRouteInfo<void> {
   const ProfileRoute({List<PageRouteInfo>? children})
@@ -104,6 +258,90 @@ class ProfileRoute extends PageRouteInfo<void> {
       return const ProfileScreen();
     },
   );
+}
+
+/// generated route for
+/// [RequestToBookScreen]
+class RequestToBookRoute extends PageRouteInfo<RequestToBookRouteArgs> {
+  RequestToBookRoute({
+    Key? key,
+    required int hotelId,
+    List<PageRouteInfo>? children,
+  }) : super(
+         RequestToBookRoute.name,
+         args: RequestToBookRouteArgs(key: key, hotelId: hotelId),
+         rawPathParams: {'hotelId': hotelId},
+         initialChildren: children,
+       );
+
+  static const String name = 'RequestToBookRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<RequestToBookRouteArgs>(
+        orElse:
+            () => RequestToBookRouteArgs(hotelId: pathParams.getInt('hotelId')),
+      );
+      return RequestToBookScreen(key: args.key, hotelId: args.hotelId);
+    },
+  );
+}
+
+class RequestToBookRouteArgs {
+  const RequestToBookRouteArgs({this.key, required this.hotelId});
+
+  final Key? key;
+
+  final int hotelId;
+
+  @override
+  String toString() {
+    return 'RequestToBookRouteArgs{key: $key, hotelId: $hotelId}';
+  }
+}
+
+/// generated route for
+/// [SelectDateScreen]
+class SelectDateRoute extends PageRouteInfo<SelectDateRouteArgs> {
+  SelectDateRoute({
+    Key? key,
+    required int hotelId,
+    List<PageRouteInfo>? children,
+  }) : super(
+         SelectDateRoute.name,
+         args: SelectDateRouteArgs(key: key, hotelId: hotelId),
+         rawPathParams: {'hotelId': hotelId},
+         initialChildren: children,
+       );
+
+  static const String name = 'SelectDateRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<SelectDateRouteArgs>(
+        orElse:
+            () => SelectDateRouteArgs(hotelId: pathParams.getInt('hotelId')),
+      );
+      return SelectDateScreen(key: args.key, hotelId: args.hotelId);
+    },
+  );
+}
+
+class SelectDateRouteArgs {
+  const SelectDateRouteArgs({this.key, required this.hotelId});
+
+  final Key? key;
+
+  final int hotelId;
+
+  @override
+  String toString() {
+    return 'SelectDateRouteArgs{key: $key, hotelId: $hotelId}';
+  }
 }
 
 /// generated route for
@@ -134,6 +372,22 @@ class SignupRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const SignupScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [YourCardScreen]
+class YourCardRoute extends PageRouteInfo<void> {
+  const YourCardRoute({List<PageRouteInfo>? children})
+    : super(YourCardRoute.name, initialChildren: children);
+
+  static const String name = 'YourCardRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const YourCardScreen();
     },
   );
 }
