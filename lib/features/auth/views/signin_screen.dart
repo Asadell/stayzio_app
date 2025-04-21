@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
@@ -14,6 +17,15 @@ class SigninScreen extends StatefulWidget {
 class _SigninScreenState extends State<SigninScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +66,7 @@ class _SigninScreenState extends State<SigninScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   hintText: "Enter your email address",
                   filled: true,
@@ -80,6 +93,7 @@ class _SigninScreenState extends State<SigninScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: "Enter your password",
@@ -150,9 +164,43 @@ class _SigninScreenState extends State<SigninScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.router.push(const MainRoute());
+                  // onPressed: () {
+                  //   context.router.push(const MainRoute());
+                  // },
+                  onPressed: () async {
+                    final authProvider = context.read<AuthProvider>();
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text.trim();
+
+                    if (email.isEmpty || password.isEmpty) {
+                      Fluttertoast.showToast(
+                        msg: "Please enter email and password",
+                        backgroundColor: Colors.redAccent,
+                        textColor: Colors.white,
+                        gravity: ToastGravity.TOP,
+                      );
+                      return;
+                    }
+
+                    final success = await authProvider.login(email, password);
+                    if (success) {
+                      Fluttertoast.showToast(
+                        msg: "Login successful!",
+                        backgroundColor: Colors.green,
+                        textColor: Colors.white,
+                        gravity: ToastGravity.TOP,
+                      );
+                      context.router.push(const MainRoute());
+                    } else {
+                      Fluttertoast.showToast(
+                        msg: "Invalid email or password",
+                        backgroundColor: Colors.orangeAccent,
+                        textColor: Colors.white,
+                        gravity: ToastGravity.TOP,
+                      );
+                    }
                   },
+
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2B5FE0),
                     foregroundColor: Colors.white,

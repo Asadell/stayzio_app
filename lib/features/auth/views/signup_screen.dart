@@ -1,6 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/auth/data/model/user.dart';
+import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
@@ -13,6 +17,9 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   bool _obscurePassword = true;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +67,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _nameController,
                 decoration: InputDecoration(
                   hintText: "Enter your name",
                   filled: true,
@@ -86,6 +94,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   hintText: "Enter your email",
                   filled: true,
@@ -112,6 +121,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: "Enter your password",
@@ -146,8 +156,54 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.router.push(const MainRoute());
+                  onPressed: () async {
+                    final fullName = _nameController.text.trim();
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text.trim();
+
+                    if (fullName.isEmpty || email.isEmpty || password.isEmpty) {
+                      Fluttertoast.showToast(
+                        msg: "Please fill in all required fields",
+                        backgroundColor: Colors.redAccent,
+                        textColor: Colors.white,
+                        gravity: ToastGravity.TOP,
+                      );
+                      return;
+                    }
+
+                    final newUser = User(
+                      fullName: fullName,
+                      email: email,
+                      password: password,
+                    );
+
+                    try {
+                      final success =
+                          await context.read<AuthProvider>().register(newUser);
+                      if (success) {
+                        Fluttertoast.showToast(
+                          msg: "Account created successfully!",
+                          backgroundColor: Colors.green,
+                          textColor: Colors.white,
+                          gravity: ToastGravity.TOP,
+                        );
+                        context.router.push(const SigninRoute());
+                      } else {
+                        Fluttertoast.showToast(
+                          msg: "Signup failed. Please try again.",
+                          backgroundColor: Colors.redAccent,
+                          textColor: Colors.white,
+                          gravity: ToastGravity.TOP,
+                        );
+                      }
+                    } catch (e) {
+                      Fluttertoast.showToast(
+                        msg: "An error occurred: $e",
+                        backgroundColor: Colors.redAccent,
+                        textColor: Colors.white,
+                        gravity: ToastGravity.TOP,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2B5FE0),
