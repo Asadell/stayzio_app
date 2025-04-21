@@ -26,6 +26,7 @@ class PaymentCardProvider with ChangeNotifier {
   }
 
   Future<bool> addNewCard(PaymentCard card) async {
+    print('masonhhh');
     try {
       _isLoading = true;
       notifyListeners();

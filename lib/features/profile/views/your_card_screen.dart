@@ -1,5 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/auth/data/provider/auth_provider.dart';
+import 'package:stayzio_app/features/booking/data/provider/payment_card_provider.dart';
+import 'package:stayzio_app/features/utils/currency_utils.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
@@ -11,11 +15,32 @@ class YourCardScreen extends StatefulWidget {
 }
 
 class _YourCardScreenState extends State<YourCardScreen> {
+  // Konstanta warna yang digunakan di beberapa tempat
+  static const Color primaryBlue = Color(0xFF2B5FE0);
+  static const Color cardBlack = Color(0xFF1E1E1E);
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Perbaikan: Hindari context.watch di initState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userId =
+          Provider.of<AuthProvider>(context, listen: false).currentUser?.id;
+      if (userId != null) {
+        context.read<PaymentCardProvider>().loadUserCards(userId);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.currentUser?.id;
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF2B5FE0),
+        backgroundColor: primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {
           context.router.push(const AddNewCardRoute());
@@ -59,37 +84,88 @@ class _YourCardScreenState extends State<YourCardScreen> {
 
               const SizedBox(height: 24),
 
-              // Visa Card
-              _buildCreditCard(
-                cardType: "visa",
-                cardNumber: "9055 3557 4453 4235",
-                balance: 3242.23,
-                expiryDate: "12/24",
-                cardColor: const Color(0xFF2B5FE0),
-                textColor: Colors.white,
+              // Card list dengan Consumer
+              Expanded(
+                child: Consumer<PaymentCardProvider>(
+                  builder: (context, cardProvider, _) {
+                    // State Loading
+                    if (cardProvider.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    // State Empty
+                    if (cardProvider.cards.isEmpty) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.credit_card_off,
+                                size: 64, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text(
+                              "You don't have any cards yet",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Add a card by clicking the + button",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // State Success: Menampilkan daftar kartu
+                    return ListView.builder(
+                      itemCount: cardProvider.cards.length,
+                      itemBuilder: (context, index) {
+                        final card = cardProvider.cards[index];
+                        // Konversi isDefault ke boolean jika perlu
+                        bool isDefaultCard = false;
+                        // Jika isDefault bertipe int
+                        isDefaultCard = card.isDefault > 0;
+
+                        return Column(
+                          children: [
+                            _buildCreditCard(
+                              cardType: card.cardType,
+                              cardNumber: card.cardNumber,
+                              balance: card.currentBalance ?? 0,
+                              expiryDate: card.expiryDate,
+                              cardColor: card.cardType == 'visa'
+                                  ? primaryBlue
+                                  : cardBlack,
+                              textColor: Colors.white,
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Default payment checkbox
+                            _buildDefaultPaymentMethod(
+                                isDefault: isDefaultCard,
+                                onChanged: (value) {
+                                  if (value == true &&
+                                      userId != null &&
+                                      card.id != null) {
+                                    // Sesuaikan dengan method di provider
+                                    cardProvider.setDefaultCard(
+                                        userId, card.id!);
+                                  }
+                                }),
+
+                            const SizedBox(height: 24),
+
+                            // Tambahan: Space untuk item terakhir
+                            if (index == cardProvider.cards.length - 1)
+                              const SizedBox(height: 80),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-
-              const SizedBox(height: 8),
-
-              // Use as default payment method
-              _buildDefaultPaymentMethod(),
-
-              const SizedBox(height: 24),
-
-              // Mastercard Card
-              _buildCreditCard(
-                cardType: "mastercard",
-                cardNumber: "5094 2456 4790 9568",
-                balance: 4570.80,
-                expiryDate: "11/24",
-                cardColor: const Color(0xFF1E1E1E),
-                textColor: Colors.white,
-              ),
-
-              const SizedBox(height: 8),
-
-              // Use as default payment method
-              _buildDefaultPaymentMethod(),
             ],
           ),
         ),
@@ -129,7 +205,7 @@ class _YourCardScreenState extends State<YourCardScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "\$${balance.toStringAsFixed(2)}",
+                    formatRupiah(balance),
                     style: TextStyle(
                       color: textColor,
                       fontSize: 20,
@@ -186,22 +262,33 @@ class _YourCardScreenState extends State<YourCardScreen> {
     );
   }
 
-  Widget _buildDefaultPaymentMethod() {
+  Widget _buildDefaultPaymentMethod({
+    bool isDefault = false,
+    ValueChanged<bool?>? onChanged,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Row(
         children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2B5FE0),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.check,
-              color: Colors.white,
-              size: 16,
+          // Gunakan widget langsung seperti di kode asli
+          InkWell(
+            onTap: () => onChanged?.call(!isDefault),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: isDefault ? primaryBlue : Colors.transparent,
+                border:
+                    isDefault ? null : Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: isDefault
+                  ? const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 16,
+                    )
+                  : null,
             ),
           ),
           const SizedBox(width: 8),

@@ -6,7 +6,6 @@ import 'package:stayzio_app/features/booking/data/provider/payment_card_provider
 import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart';
 import 'package:stayzio_app/features/message/data/provider/message_provider.dart';
 import 'package:stayzio_app/routes/app_route.dart';
-import 'package:stayzio_app/services/sqlite_service.dart';
 import 'package:stayzio_app/style/theme/stayzio_theme.dart';
 
 void main() async {

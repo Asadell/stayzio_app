@@ -15,7 +15,6 @@ class HotelProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> loadHotels() async {
-    print('load hotel');
     try {
       _isLoading = true;
       notifyListeners();
@@ -25,15 +24,12 @@ class HotelProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('error');
-      print(e);
       _isLoading = false;
       notifyListeners();
     }
   }
 
   Future<void> loadTop3PopularHotels() async {
-    print('load top 3 hotel');
     // New method to load top 3 popular hotels
     try {
       _isLoading = true;
