@@ -13,7 +13,7 @@ class Booking {
   final double? cleaningFee;
   final double? serviceFee;
   final double? adminFee;
-  final String status; // pending, confirmed, cancelled, completed
+  String status; // pending, confirmed, cancelled, completed
   final int? paymentMethodId;
   final String? promoCode;
   final String? createdAt;
