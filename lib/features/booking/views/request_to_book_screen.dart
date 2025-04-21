@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
+import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart';
+import 'package:stayzio_app/features/utils/currency_utils.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
@@ -26,22 +29,13 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
   @override
   Widget build(BuildContext context) {
     // Calculate total payment
-    const pricePerNight = 200.0;
     final int nights = checkOutDate.difference(checkInDate).inDays;
+    final hotel = context.watch<HotelProvider>().selectedHotel;
+    final double pricePerNight = hotel?.pricePerNight ?? 0;
     final double totalPrice = pricePerNight * nights;
     const double cleaningFee = 5.0;
     const double serviceFee = 5.0;
     final double totalPayment = totalPrice + cleaningFee + serviceFee;
-
-    // Get hotel details
-    final hotel = Hotel(
-      id: widget.hotelId,
-      name: 'The Aston Vill Hotel',
-      location: 'Palm River, Michigan',
-      pricePerNight: pricePerNight,
-      rating: 4.7,
-      imageUrl: 'assets/images/placeholder.png',
-    );
 
     return Scaffold(
       appBar: AppBar(
@@ -70,63 +64,101 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Check - In',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today, size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${checkInDate.day} ${_getMonthName(checkInDate.month)}, ${checkInDate.year}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ],
+                  child: GestureDetector(
+                    onTap: () async {
+                      // Memunculkan dialog kalender untuk memilih tanggal check-in
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: checkInDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (selectedDate != null && selectedDate != checkInDate) {
+                        setState(() {
+                          checkInDate = selectedDate;
+                          // Resetkan check-out jika check-in lebih baru
+                          if (checkOutDate.isBefore(checkInDate)) {
+                            checkOutDate =
+                                checkInDate.add(const Duration(days: 2));
+                          }
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Check - In',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${checkInDate.day} ${_getMonthName(checkInDate.month)}, ${checkInDate.year}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Check - Out',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today, size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${checkOutDate.day} ${_getMonthName(checkOutDate.month)}, ${checkOutDate.year}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ],
+                  child: GestureDetector(
+                    onTap: () async {
+                      // Memunculkan dialog kalender untuk memilih tanggal check-out
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: checkOutDate,
+                        firstDate: checkInDate.add(const Duration(days: 1)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (selectedDate != null &&
+                          selectedDate != checkOutDate) {
+                        setState(() {
+                          checkOutDate = selectedDate;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Check - Out',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${checkOutDate.day} ${_getMonthName(checkOutDate.month)}, ${checkOutDate.year}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -171,45 +203,45 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Pay With',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.payment),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'FastPayz',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '****4520',
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Edit'),
-                  ),
-                ],
-              ),
-            ),
+            // const SizedBox(height: 24),
+            // const Text(
+            //   'Pay With',
+            //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            // ),
+            // const SizedBox(height: 12),
+            // Container(
+            //   padding: const EdgeInsets.all(12),
+            //   decoration: BoxDecoration(
+            //     border: Border.all(color: Colors.grey.shade300),
+            //     borderRadius: BorderRadius.circular(8),
+            //   ),
+            //   child: Row(
+            //     children: [
+            //       const Icon(Icons.payment),
+            //       const SizedBox(width: 12),
+            //       Expanded(
+            //         child: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             const Text(
+            //               'FastPayz',
+            //               style: TextStyle(fontWeight: FontWeight.bold),
+            //             ),
+            //             Text(
+            //               '****4520',
+            //               style:
+            //                   TextStyle(color: Colors.grey[600], fontSize: 12),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //       TextButton(
+            //         onPressed: () {},
+            //         child: const Text('Edit'),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             const SizedBox(height: 24),
             const Text(
               'Payment Details',
@@ -224,7 +256,7 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 Text(
-                  '\$${totalPrice.toStringAsFixed(0)}',
+                  formatRupiah(totalPrice),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -238,7 +270,7 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 Text(
-                  '\$${cleaningFee.toStringAsFixed(0)}',
+                  formatRupiah(cleaningFee * 1000),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -252,7 +284,7 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 Text(
-                  '\$${serviceFee.toStringAsFixed(0)}',
+                  formatRupiah(serviceFee * 1000),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -268,7 +300,7 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
-                  '\$${totalPayment.toStringAsFixed(0)}',
+                  formatRupiah(totalPayment),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16),
                 ),
@@ -279,7 +311,13 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  context.router.push(CheckoutRoute(hotelId: widget.hotelId));
+                  context.router.push(CheckoutRoute(
+                    hotelId: widget.hotelId,
+                    checkInDate: checkInDate,
+                    checkOutDate: checkOutDate,
+                    guests: guests,
+                    totalPayment: totalPayment,
+                  ));
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),

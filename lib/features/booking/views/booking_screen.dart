@@ -1,7 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:stayzio_app/features/booking/data/model/booking.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
 
+@RoutePage()
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
 

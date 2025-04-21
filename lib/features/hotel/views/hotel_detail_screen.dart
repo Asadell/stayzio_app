@@ -1,12 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
-import 'package:stayzio_app/features/hotel/data/model/hotel_facility.dart';
+import 'package:provider/provider.dart';
+import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart';
+import 'package:stayzio_app/features/utils/currency_utils.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
-class HotelDetailScreen extends StatelessWidget {
+class HotelDetailScreen extends StatefulWidget {
   final int hotelId;
 
   const HotelDetailScreen({
@@ -15,33 +16,22 @@ class HotelDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<HotelDetailScreen> createState() => _HotelDetailScreenState();
+}
+
+class _HotelDetailScreenState extends State<HotelDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      context.read<HotelProvider>().getHotelById(widget.hotelId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Mock data for a hotel detail
-    final hotel = Hotel(
-      id: hotelId,
-      name: 'The Aston Vill Hotel',
-      location: 'Palm River, Michigan',
-      pricePerNight: 120,
-      rating: 4.7,
-      description:
-          'The ideal place for those looking for a luxurious and tranquil lake experience with stunning sea views...',
-      imageUrl: 'assets/images/placeholder.png',
-      facilities: [
-        HotelFacility(hotelId: hotelId, facilityName: 'AC', facilityIcon: 'ac'),
-        HotelFacility(
-            hotelId: hotelId,
-            facilityName: 'Restaurant',
-            facilityIcon: 'restaurant'),
-        HotelFacility(
-            hotelId: hotelId,
-            facilityName: 'Swimming Pool',
-            facilityIcon: 'pool'),
-        HotelFacility(
-            hotelId: hotelId,
-            facilityName: '24-Hours Front Desk',
-            facilityIcon: 'desk'),
-      ],
-    );
 
     return Scaffold(
       body: CustomScrollView(
@@ -56,8 +46,9 @@ class HotelDetailScreen extends StatelessWidget {
                   color: Theme.of(context).primaryTextTheme.titleLarge?.color,
                 ),
               ),
-              background: Image.asset(
-                hotel.imageUrl ?? 'assets/images/placeholder.jpg',
+              background: Image.network(
+                context.watch<HotelProvider>().selectedHotel!.imageUrl ??
+                    'assets/images/placeholder.jpg',
                 fit: BoxFit.cover,
               ),
             ),
@@ -82,11 +73,14 @@ class HotelDetailScreen extends StatelessWidget {
                     children: [
                       const Icon(Icons.local_hotel, color: Colors.blue),
                       const SizedBox(width: 8),
-                      Text(
-                        hotel.name,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          context.watch<HotelProvider>().selectedHotel!.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -98,13 +92,14 @@ class HotelDetailScreen extends StatelessWidget {
                           size: 16, color: Colors.blue),
                       const SizedBox(width: 4),
                       Text(
-                        hotel.location,
+                        context.watch<HotelProvider>().selectedHotel!.location,
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       const Spacer(),
                       const Icon(Icons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 4),
-                      Text('${hotel.rating}'),
+                      Text(
+                          '${context.watch<HotelProvider>().selectedHotel!.rating}'),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -131,7 +126,11 @@ class HotelDetailScreen extends StatelessWidget {
                   // Facility icons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: hotel.facilities?.map((facility) {
+                    children: context
+                            .watch<HotelProvider>()
+                            .selectedHotel!
+                            .facilities
+                            ?.map((facility) {
                           IconData iconData;
                           switch (facility.facilityIcon) {
                             case 'ac':
@@ -183,7 +182,8 @@ class HotelDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    hotel.description ?? 'No description available',
+                    context.watch<HotelProvider>().selectedHotel!.description ??
+                        'No description available',
                     style: TextStyle(
                       color: Colors.grey[600],
                       height: 1.5,
@@ -257,23 +257,36 @@ class HotelDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Price'),
-                          Text(
-                            '\$${hotel.pricePerNight.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Price'),
+                            Text(
+                              '${formatRupiah(context.watch<HotelProvider>().selectedHotel!.pricePerNight)}/night',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          context.router
-                              .push(RequestToBookRoute(hotelId: hotel.id!));
+                          final hotelProvider = Provider.of<HotelProvider>(
+                              context,
+                              listen: false);
+                          if (hotelProvider.selectedHotel != null) {
+                            final hotelId = hotelProvider.selectedHotel!.id!;
+                            context.router
+                                .push(RequestToBookRoute(hotelId: hotelId));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Hotel data is not available')),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(

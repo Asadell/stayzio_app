@@ -103,38 +103,71 @@ class ChatRouteArgs {
 /// generated route for
 /// [CheckoutScreen]
 class CheckoutRoute extends PageRouteInfo<CheckoutRouteArgs> {
-  CheckoutRoute({Key? key, required int hotelId, List<PageRouteInfo>? children})
-    : super(
-        CheckoutRoute.name,
-        args: CheckoutRouteArgs(key: key, hotelId: hotelId),
-        rawPathParams: {'hotelId': hotelId},
-        initialChildren: children,
-      );
+  CheckoutRoute({
+    Key? key,
+    required int hotelId,
+    required DateTime checkInDate,
+    required DateTime checkOutDate,
+    required int guests,
+    required double totalPayment,
+    List<PageRouteInfo>? children,
+  }) : super(
+         CheckoutRoute.name,
+         args: CheckoutRouteArgs(
+           key: key,
+           hotelId: hotelId,
+           checkInDate: checkInDate,
+           checkOutDate: checkOutDate,
+           guests: guests,
+           totalPayment: totalPayment,
+         ),
+         rawPathParams: {'hotelId': hotelId},
+         initialChildren: children,
+       );
 
   static const String name = 'CheckoutRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<CheckoutRouteArgs>(
-        orElse: () => CheckoutRouteArgs(hotelId: pathParams.getInt('hotelId')),
+      final args = data.argsAs<CheckoutRouteArgs>();
+      return CheckoutScreen(
+        key: args.key,
+        hotelId: args.hotelId,
+        checkInDate: args.checkInDate,
+        checkOutDate: args.checkOutDate,
+        guests: args.guests,
+        totalPayment: args.totalPayment,
       );
-      return CheckoutScreen(key: args.key, hotelId: args.hotelId);
     },
   );
 }
 
 class CheckoutRouteArgs {
-  const CheckoutRouteArgs({this.key, required this.hotelId});
+  const CheckoutRouteArgs({
+    this.key,
+    required this.hotelId,
+    required this.checkInDate,
+    required this.checkOutDate,
+    required this.guests,
+    required this.totalPayment,
+  });
 
   final Key? key;
 
   final int hotelId;
 
+  final DateTime checkInDate;
+
+  final DateTime checkOutDate;
+
+  final int guests;
+
+  final double totalPayment;
+
   @override
   String toString() {
-    return 'CheckoutRouteArgs{key: $key, hotelId: $hotelId}';
+    return 'CheckoutRouteArgs{key: $key, hotelId: $hotelId, checkInDate: $checkInDate, checkOutDate: $checkOutDate, guests: $guests, totalPayment: $totalPayment}';
   }
 }
 
@@ -299,48 +332,6 @@ class RequestToBookRouteArgs {
   @override
   String toString() {
     return 'RequestToBookRouteArgs{key: $key, hotelId: $hotelId}';
-  }
-}
-
-/// generated route for
-/// [SelectDateScreen]
-class SelectDateRoute extends PageRouteInfo<SelectDateRouteArgs> {
-  SelectDateRoute({
-    Key? key,
-    required int hotelId,
-    List<PageRouteInfo>? children,
-  }) : super(
-         SelectDateRoute.name,
-         args: SelectDateRouteArgs(key: key, hotelId: hotelId),
-         rawPathParams: {'hotelId': hotelId},
-         initialChildren: children,
-       );
-
-  static const String name = 'SelectDateRoute';
-
-  static PageInfo page = PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<SelectDateRouteArgs>(
-        orElse:
-            () => SelectDateRouteArgs(hotelId: pathParams.getInt('hotelId')),
-      );
-      return SelectDateScreen(key: args.key, hotelId: args.hotelId);
-    },
-  );
-}
-
-class SelectDateRouteArgs {
-  const SelectDateRouteArgs({this.key, required this.hotelId});
-
-  final Key? key;
-
-  final int hotelId;
-
-  @override
-  String toString() {
-    return 'SelectDateRouteArgs{key: $key, hotelId: $hotelId}';
   }
 }
 

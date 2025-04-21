@@ -1,17 +1,30 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:stayzio_app/features/booking/data/model/booking.dart';
 import 'package:stayzio_app/features/booking/data/model/payment_card.dart';
 import 'package:stayzio_app/features/hotel/data/model/hotel.dart';
+import 'package:stayzio_app/features/hotel/data/provider/hotel_provider.dart';
+import 'package:stayzio_app/features/utils/currency_utils.dart';
+import 'package:stayzio_app/features/utils/format_date_utils.dart';
+import 'package:stayzio_app/features/utils/get_month_name_utils.dart';
 import 'package:stayzio_app/routes/app_route.dart';
 
 @RoutePage()
 class CheckoutScreen extends StatefulWidget {
   final int hotelId;
+  final DateTime checkInDate;
+  final DateTime checkOutDate;
+  final int guests;
+  final double totalPayment;
 
   const CheckoutScreen({
     super.key,
     @PathParam('hotelId') required this.hotelId,
+    required this.checkInDate,
+    required this.checkOutDate,
+    required this.guests,
+    required this.totalPayment,
   });
 
   @override
@@ -19,8 +32,6 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String selectedCard = 'mastercard'; // 'mastercard' or 'visa'
-
   // Mock payment cards
   final List<PaymentCard> paymentCards = [
     PaymentCard(
@@ -44,34 +55,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Mock hotel data
-    final hotel = Hotel(
-      id: widget.hotelId,
-      name: 'The Aston Vill Hotel',
-      location: 'Palm River, Michigan',
-      pricePerNight: 120.0,
-      rating: 4.7,
-      imageUrl: 'assets/images/placeholder.png',
-    );
-
-    // Mock booking data
-    final booking = Booking(
-      userId: 1,
-      hotelId: widget.hotelId,
-      checkInDate: '12 Nov 2024',
-      checkOutDate: '14 Nov 2024',
-      guests: 2,
-      roomType: 'Queen Room',
-      totalPrice: 139.00,
-      cleaningFee: 2.50,
-      serviceFee: 5.0,
-      adminFee: 5.0,
-      status: 'pending',
-    );
+    String selectedCard = 'mastercard'; // 'mastercard' or 'visa'
+    final formattedCheckIn =
+        '${widget.checkInDate.day} ${getMonthName(widget.checkInDate.month)} ${widget.checkInDate.year}';
+    final formattedCheckOut =
+        '${widget.checkOutDate.day} ${getMonthName(widget.checkOutDate.month)} ${widget.checkOutDate.year}';
 
     // Calculate total price
-    final totalPrice = booking.totalPrice;
-    final adminFee = booking.adminFee ?? 0.0;
+    final totalPrice = widget.totalPayment;
+    final adminFee = 2500;
     final totalAmount = totalPrice + adminFee;
 
     return Scaffold(
@@ -106,8 +98,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        hotel.imageUrl ?? 'assets/images/placeholder.png',
+                      child: Image.network(
+                        context
+                                .watch<HotelProvider>()
+                                .selectedHotel!
+                                .imageUrl ??
+                            'assets/images/placeholder.png',
                         height: 80,
                         width: 80,
                         fit: BoxFit.cover,
@@ -123,25 +119,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               const Icon(Icons.star,
                                   color: Colors.amber, size: 16),
                               const SizedBox(width: 4),
-                              Text('${hotel.rating}'),
+                              Text(
+                                  '${context.watch<HotelProvider>().selectedHotel!.rating}'),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            hotel.name,
+                            context.watch<HotelProvider>().selectedHotel!.name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
                           Text(
-                            hotel.location,
+                            context
+                                .watch<HotelProvider>()
+                                .selectedHotel!
+                                .location,
                             style: TextStyle(
                                 color: Colors.grey[600], fontSize: 12),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '\$${hotel.pricePerNight.toStringAsFixed(0)}/night',
+                            'Rp ${formatRupiah(context.watch<HotelProvider>().selectedHotel!.pricePerNight)}/night',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -172,7 +172,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
-                  Text('${booking.checkInDate} - ${booking.checkOutDate}'),
+                  Text(
+                      '${formatDate(widget.checkInDate)} - ${formatDate(widget.checkOutDate)}'),
                 ],
               ),
               const SizedBox(height: 12),
@@ -185,7 +186,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
-                  Text('${booking.guests} Guest(s) (1 Room)'),
+                  Text('${widget.guests} Guest(s) (1 Room)'),
                 ],
               ),
               const SizedBox(height: 12),
@@ -198,7 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
-                  Text(booking.roomType ?? 'Standard Room'),
+                  Text('Standard Room'),
                 ],
               ),
               const SizedBox(height: 12),
@@ -230,7 +231,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Price'),
-                  Text('\$${totalPrice.toStringAsFixed(2)}'),
+                  Text(formatRupiah(totalPrice)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -238,7 +239,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Admin fee'),
-                  Text('\$${adminFee.toStringAsFixed(2)}'),
+                  Text(formatRupiah(adminFee.toDouble())),
                 ],
               ),
               const SizedBox(height: 8),
@@ -246,7 +247,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Total price'),
-                  Text('\$${totalAmount.toStringAsFixed(2)}'),
+                  Text(formatRupiah(totalAmount)),
                 ],
               ),
 
@@ -255,7 +256,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    _showPaymentCardSelection(context);
+                    // _showPaymentCardSelection(context);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -277,364 +278,364 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _showPaymentCardSelection(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Container(
-              padding: const EdgeInsets.all(24.0),
-              // Remove fixed height constraint
-              // height: MediaQuery.of(context).size.height * 0.45,
-              // Set constraints with max height instead
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Use min size
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Payment Method',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
+  // void _showPaymentCardSelection(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+  //     ),
+  //     builder: (BuildContext context) {
+  //       return StatefulBuilder(
+  //         builder: (BuildContext context, StateSetter setState) {
+  //           return Container(
+  //             padding: const EdgeInsets.all(24.0),
+  //             // Remove fixed height constraint
+  //             // height: MediaQuery.of(context).size.height * 0.45,
+  //             // Set constraints with max height instead
+  //             constraints: BoxConstraints(
+  //               maxHeight: MediaQuery.of(context).size.height * 0.75,
+  //             ),
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min, // Use min size
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Row(
+  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                   children: [
+  //                     const Text(
+  //                       'Payment Method',
+  //                       style: TextStyle(
+  //                         fontSize: 18,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                     IconButton(
+  //                       icon: const Icon(Icons.close),
+  //                       onPressed: () => Navigator.pop(context),
+  //                     ),
+  //                   ],
+  //                 ),
 
-                  // Wrap the content in a SingleChildScrollView or Expanded + ListView
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        const SizedBox(height: 20),
+  //                 // Wrap the content in a SingleChildScrollView or Expanded + ListView
+  //                 Expanded(
+  //                   child: ListView(
+  //                     children: [
+  //                       const SizedBox(height: 20),
 
-                        // MasterCard option
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedCard = 'mastercard';
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: selectedCard == 'mastercard'
-                                    ? Colors.blue
-                                    : Colors.grey.shade300,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'assets/images/placeholder.png',
-                                  height: 40,
-                                  width: 40,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 40,
-                                      width: 40,
-                                      color: Colors.grey[300],
-                                      child: const Icon(Icons.credit_card,
-                                          color: Colors.blue),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 16),
-                                const Expanded(
-                                  child: Text(
-                                    'Master Card',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Radio<String>(
-                                  value: 'mastercard',
-                                  groupValue: selectedCard,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedCard = value!;
-                                    });
-                                  },
-                                  activeColor: Colors.blue,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+  //                       // MasterCard option
+  //                       GestureDetector(
+  //                         onTap: () {
+  //                           setState(() {
+  //                             selectedCard = 'mastercard';
+  //                           });
+  //                         },
+  //                         child: Container(
+  //                           padding: const EdgeInsets.all(16),
+  //                           decoration: BoxDecoration(
+  //                             border: Border.all(
+  //                               color: selectedCard == 'mastercard'
+  //                                   ? Colors.blue
+  //                                   : Colors.grey.shade300,
+  //                             ),
+  //                             borderRadius: BorderRadius.circular(8),
+  //                           ),
+  //                           child: Row(
+  //                             children: [
+  //                               Image.asset(
+  //                                 'assets/images/placeholder.png',
+  //                                 height: 40,
+  //                                 width: 40,
+  //                                 errorBuilder: (context, error, stackTrace) {
+  //                                   return Container(
+  //                                     height: 40,
+  //                                     width: 40,
+  //                                     color: Colors.grey[300],
+  //                                     child: const Icon(Icons.credit_card,
+  //                                         color: Colors.blue),
+  //                                   );
+  //                                 },
+  //                               ),
+  //                               const SizedBox(width: 16),
+  //                               const Expanded(
+  //                                 child: Text(
+  //                                   'Master Card',
+  //                                   style:
+  //                                       TextStyle(fontWeight: FontWeight.bold),
+  //                                 ),
+  //                               ),
+  //                               Radio<String>(
+  //                                 value: 'mastercard',
+  //                                 groupValue: selectedCard,
+  //                                 onChanged: (value) {
+  //                                   setState(() {
+  //                                     selectedCard = value!;
+  //                                   });
+  //                                 },
+  //                                 activeColor: Colors.blue,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ),
 
-                        const SizedBox(height: 16),
+  //                       const SizedBox(height: 16),
 
-                        // Visa option
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedCard = 'visa';
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: selectedCard == 'visa'
-                                    ? Colors.blue
-                                    : Colors.grey.shade300,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'assets/images/placeholder.png',
-                                  height: 40,
-                                  width: 40,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 40,
-                                      width: 40,
-                                      color: Colors.grey[300],
-                                      child: const Icon(Icons.credit_card,
-                                          color: Colors.blue),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 16),
-                                const Expanded(
-                                  child: Text(
-                                    'Visa',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Radio<String>(
-                                  value: 'visa',
-                                  groupValue: selectedCard,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedCard = value!;
-                                    });
-                                  },
-                                  activeColor: Colors.blue,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+  //                       // Visa option
+  //                       GestureDetector(
+  //                         onTap: () {
+  //                           setState(() {
+  //                             selectedCard = 'visa';
+  //                           });
+  //                         },
+  //                         child: Container(
+  //                           padding: const EdgeInsets.all(16),
+  //                           decoration: BoxDecoration(
+  //                             border: Border.all(
+  //                               color: selectedCard == 'visa'
+  //                                   ? Colors.blue
+  //                                   : Colors.grey.shade300,
+  //                             ),
+  //                             borderRadius: BorderRadius.circular(8),
+  //                           ),
+  //                           child: Row(
+  //                             children: [
+  //                               Image.asset(
+  //                                 'assets/images/placeholder.png',
+  //                                 height: 40,
+  //                                 width: 40,
+  //                                 errorBuilder: (context, error, stackTrace) {
+  //                                   return Container(
+  //                                     height: 40,
+  //                                     width: 40,
+  //                                     color: Colors.grey[300],
+  //                                     child: const Icon(Icons.credit_card,
+  //                                         color: Colors.blue),
+  //                                   );
+  //                                 },
+  //                               ),
+  //                               const SizedBox(width: 16),
+  //                               const Expanded(
+  //                                 child: Text(
+  //                                   'Visa',
+  //                                   style:
+  //                                       TextStyle(fontWeight: FontWeight.bold),
+  //                                 ),
+  //                               ),
+  //                               Radio<String>(
+  //                                 value: 'visa',
+  //                                 groupValue: selectedCard,
+  //                                 onChanged: (value) {
+  //                                   setState(() {
+  //                                     selectedCard = value!;
+  //                                   });
+  //                                 },
+  //                                 activeColor: Colors.blue,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ),
 
-                        const SizedBox(height: 16),
+  //                       const SizedBox(height: 16),
 
-                        // MasterCard option
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedCard = 'mastercard';
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: selectedCard == 'mastercard'
-                                    ? Colors.blue
-                                    : Colors.grey.shade300,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'assets/images/card.jpg',
-                                  height: 40,
-                                  width: 40,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 40,
-                                      width: 40,
-                                      color: Colors.grey[300],
-                                      child: const Icon(Icons.credit_card,
-                                          color: Colors.blue),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 16),
-                                const Expanded(
-                                  child: Text(
-                                    'Master Card',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Radio<String>(
-                                  value: 'mastercard',
-                                  groupValue: selectedCard,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedCard = value!;
-                                    });
-                                  },
-                                  activeColor: Colors.blue,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+  //                       // MasterCard option
+  //                       GestureDetector(
+  //                         onTap: () {
+  //                           setState(() {
+  //                             selectedCard = 'mastercard';
+  //                           });
+  //                         },
+  //                         child: Container(
+  //                           padding: const EdgeInsets.all(16),
+  //                           decoration: BoxDecoration(
+  //                             border: Border.all(
+  //                               color: selectedCard == 'mastercard'
+  //                                   ? Colors.blue
+  //                                   : Colors.grey.shade300,
+  //                             ),
+  //                             borderRadius: BorderRadius.circular(8),
+  //                           ),
+  //                           child: Row(
+  //                             children: [
+  //                               Image.asset(
+  //                                 'assets/images/card.jpg',
+  //                                 height: 40,
+  //                                 width: 40,
+  //                                 errorBuilder: (context, error, stackTrace) {
+  //                                   return Container(
+  //                                     height: 40,
+  //                                     width: 40,
+  //                                     color: Colors.grey[300],
+  //                                     child: const Icon(Icons.credit_card,
+  //                                         color: Colors.blue),
+  //                                   );
+  //                                 },
+  //                               ),
+  //                               const SizedBox(width: 16),
+  //                               const Expanded(
+  //                                 child: Text(
+  //                                   'Master Card',
+  //                                   style:
+  //                                       TextStyle(fontWeight: FontWeight.bold),
+  //                                 ),
+  //                               ),
+  //                               Radio<String>(
+  //                                 value: 'mastercard',
+  //                                 groupValue: selectedCard,
+  //                                 onChanged: (value) {
+  //                                   setState(() {
+  //                                     selectedCard = value!;
+  //                                   });
+  //                                 },
+  //                                 activeColor: Colors.blue,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ),
 
-                        const SizedBox(height: 16),
+  //                       const SizedBox(height: 16),
 
-                        // Visa option
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedCard = 'visa';
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: selectedCard == 'visa'
-                                    ? Colors.blue
-                                    : Colors.grey.shade300,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'assets/images/card.jpg',
-                                  height: 40,
-                                  width: 40,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 40,
-                                      width: 40,
-                                      color: Colors.grey[300],
-                                      child: const Icon(Icons.credit_card,
-                                          color: Colors.blue),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 16),
-                                const Expanded(
-                                  child: Text(
-                                    'Visa',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Radio<String>(
-                                  value: 'visa',
-                                  groupValue: selectedCard,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedCard = value!;
-                                    });
-                                  },
-                                  activeColor: Colors.blue,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+  //                       // Visa option
+  //                       GestureDetector(
+  //                         onTap: () {
+  //                           setState(() {
+  //                             selectedCard = 'visa';
+  //                           });
+  //                         },
+  //                         child: Container(
+  //                           padding: const EdgeInsets.all(16),
+  //                           decoration: BoxDecoration(
+  //                             border: Border.all(
+  //                               color: selectedCard == 'visa'
+  //                                   ? Colors.blue
+  //                                   : Colors.grey.shade300,
+  //                             ),
+  //                             borderRadius: BorderRadius.circular(8),
+  //                           ),
+  //                           child: Row(
+  //                             children: [
+  //                               Image.asset(
+  //                                 'assets/images/card.jpg',
+  //                                 height: 40,
+  //                                 width: 40,
+  //                                 errorBuilder: (context, error, stackTrace) {
+  //                                   return Container(
+  //                                     height: 40,
+  //                                     width: 40,
+  //                                     color: Colors.grey[300],
+  //                                     child: const Icon(Icons.credit_card,
+  //                                         color: Colors.blue),
+  //                                   );
+  //                                 },
+  //                               ),
+  //                               const SizedBox(width: 16),
+  //                               const Expanded(
+  //                                 child: Text(
+  //                                   'Visa',
+  //                                   style:
+  //                                       TextStyle(fontWeight: FontWeight.bold),
+  //                                 ),
+  //                               ),
+  //                               Radio<String>(
+  //                                 value: 'visa',
+  //                                 groupValue: selectedCard,
+  //                                 onChanged: (value) {
+  //                                   setState(() {
+  //                                     selectedCard = value!;
+  //                                   });
+  //                                 },
+  //                                 activeColor: Colors.blue,
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ),
 
-                        const SizedBox(height: 16),
+  //                       const SizedBox(height: 16),
 
-                        // Add new card option
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                height: 40,
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child:
-                                    const Icon(Icons.add, color: Colors.blue),
-                              ),
-                              const SizedBox(width: 16),
-                              const Text(
-                                'Add Debit Card',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
+  //                       // Add new card option
+  //                       Container(
+  //                         padding: const EdgeInsets.all(16),
+  //                         decoration: BoxDecoration(
+  //                           border: Border.all(color: Colors.grey.shade300),
+  //                           borderRadius: BorderRadius.circular(8),
+  //                         ),
+  //                         child: Row(
+  //                           children: [
+  //                             Container(
+  //                               height: 40,
+  //                               width: 40,
+  //                               decoration: BoxDecoration(
+  //                                 color: Colors.blue.withOpacity(0.1),
+  //                                 borderRadius: BorderRadius.circular(20),
+  //                               ),
+  //                               child:
+  //                                   const Icon(Icons.add, color: Colors.blue),
+  //                             ),
+  //                             const SizedBox(width: 16),
+  //                             const Text(
+  //                               'Add Debit Card',
+  //                               style: TextStyle(fontWeight: FontWeight.bold),
+  //                             ),
+  //                           ],
+  //                         ),
+  //                       ),
 
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
+  //                       const SizedBox(height: 20),
+  //                     ],
+  //                   ),
+  //                 ),
 
-                  // Confirm button - keep outside of the scrollable area
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // Show payment success dialog
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Payment Successful'),
-                              content: const Text(
-                                  'Your booking has been confirmed!'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    // Navigate back to home
-                                    context.router.push(const MainRoute());
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Confirm and Pay',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  //                 // Confirm button - keep outside of the scrollable area
+  //                 Padding(
+  //                   padding: const EdgeInsets.only(top: 16.0),
+  //                   child: SizedBox(
+  //                     width: double.infinity,
+  //                     child: ElevatedButton(
+  //                       onPressed: () {
+  //                         Navigator.pop(context);
+  //                         // Show payment success dialog
+  //                         showDialog(
+  //                           context: context,
+  //                           builder: (context) => AlertDialog(
+  //                             title: const Text('Payment Successful'),
+  //                             content: const Text(
+  //                                 'Your booking has been confirmed!'),
+  //                             actions: [
+  //                               TextButton(
+  //                                 onPressed: () {
+  //                                   Navigator.of(context).pop();
+  //                                   // Navigate back to home
+  //                                   context.router.push(const MainRoute());
+  //                                 },
+  //                                 child: const Text('OK'),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         );
+  //                       },
+  //                       style: ElevatedButton.styleFrom(
+  //                         padding: const EdgeInsets.symmetric(vertical: 16),
+  //                         backgroundColor: Colors.blue,
+  //                         shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(8),
+  //                         ),
+  //                       ),
+  //                       child: const Text(
+  //                         'Confirm and Pay',
+  //                         style: TextStyle(color: Colors.white, fontSize: 16),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 }
